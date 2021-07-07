@@ -1,0 +1,55 @@
+{% extends "base.html.twig" %}
+{% block title %}
+    confirmation
+{% endblock %}
+{% block body %}
+    <div class="container">
+    {% for journee  in journees %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th colspan="3">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>label</th>
+                <th>quantite</th>
+                <th>prix</th>
+            </tr>
+            <tr>
+                <td>{{type}}</td>
+                <td>1</td>
+                <td></td>
+                {% if journee.majoration %}
+                    <tr>
+                        <td colspan="2">journee majorette</td>
+                        <td>12</td>
+                    </tr>
+                {% endif %}
+            </tr>
+            <tr>
+                <td>adultes</td>
+                <td>{{journee.adultes}}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>enfants</td>
+                <td>{{journee.enfants}}</td>
+                <td></td>
+            </tr>
+        </tbody>
+
+    </table>
+        {# <div class="card-body"></div>
+        <div>nombres d'adultes: {{journee.adultes}}</div>
+        <div>nombres d'enfants: {{journee.enfants}}</div> #}
+        {# {% if journee.majoration %}
+            <div>majoration haute saison</div>
+        {% endif %} #}
+        
+    {% endfor %}
+    {# <div>{{startAt}}</div> #}
+    </div>
+
+{% endblock %}

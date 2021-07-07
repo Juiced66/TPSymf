@@ -1,0 +1,17 @@
+name: tpsymfo
+recipe: symfony
+config:
+  webroot: public
+services:
+  node:
+    type: node:14
+    build:
+      - yarn install
+      - npm install
+tooling:
+  yarn:
+    service: node
+  node:
+    service: node
+  npm:
+    service: node

@@ -1,0 +1,17 @@
+{% extends "base.html.twig" %}
+{% block body %}
+    <h2>Vente de la merde</h2>
+
+
+    <div class="container">
+       
+        {{include('home/part/card.html.twig', {prefix: 'c', items: caravanes, type: 'caravanes',image: 'caravane.jpg'})}} 
+        
+        {{include('home/part/card.html.twig', {prefix: 'm', items: MHS, type: 'mobile-home',image: 'caravane.jpg'})}} 
+           
+        {{include('home/part/card.html.twig', {prefix: 't', items: terrains, type: 'terrains', image: 'caravane.jpg'})}} 
+          
+        </div>
+    </div>
+
+{% endblock %}

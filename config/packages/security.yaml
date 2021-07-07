@@ -1,0 +1,51 @@
+security:
+    # https://symfony.com/doc/current/security/experimental_authenticators.html
+    enable_authenticator_manager: true
+    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+    providers:
+        from_database:
+            entity:
+                class: App\Entity\User
+                property: email
+#        in_memory:
+#            memory:
+#                users:
+#                    admin:
+#                        password: admin
+#                        roles: ROLE_ADMIN
+#                    usix:
+#                        password: usix
+#                        roles: ROLE_USER
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            lazy: true
+#            http_basic: true # formulaire d'authentification du navigateur
+            form_login:
+                check_path: login
+                default_target_path: home
+
+            logout:
+                path: /logout
+                target: /
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#firewalls-authentication
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        # - { path: ^/home, roles: ROLE_ADMIN }
+        # - { path: ^/admin, roles: ROLE_ADMIN }
+
+    password_hashers:
+        App\Entity\User:
+            algorithm: bcrypt
+            cost: 12
+
+
+#        Symfony\Component\Security\Core\User\User: plaintext
