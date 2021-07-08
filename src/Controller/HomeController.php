@@ -44,7 +44,7 @@ class HomeController extends AbstractController
         $caravanes = [];
         $m_h = [];
         $emplacements = [];
-        foreach($prestations as $value)
+        foreach($prestations as $value) //parse des éléments de la table prestations
         {
             if(preg_match_all('/^Caravane/', $value->getLabel()))
                 array_push($caravanes,$value->getLabel());
@@ -67,10 +67,10 @@ class HomeController extends AbstractController
      */
     public function confirmCommande(): Response
     {
-        function definirSaison(string $date):int
+        function definirSaison(string $date):int //gestion de la date : ajout de l'année
         {
-            $bob =  date('Y', strtotime($_POST['startAt'])).'-'.$date;
-            return strftime('%j',strtotime($bob));
+            $bob =  date('Y', strtotime($_POST['startAt'])).'-'.$date; //strtotime => timestamp
+            return strftime('%j',strtotime($bob)); //strftime && %j  => jours de l'année (1 a 366)
         }
         define('HAUTE_SAISON_DEBUT', definirSaison('06-19'));// Definir la date de debut avec -2 jours
         define('HAUTE_SAISON_FIN', definirSaison('08-31'));// 08-31
@@ -80,7 +80,8 @@ class HomeController extends AbstractController
 
         $prices = [];
         $idType = '';
-        foreach($prestations as $prestation) 
+        foreach($prestations as $prestation) //traitement des informations a donner a la vue 
+                                            //pour construire la facturation par journées (en fonction du type de logement)
         { 
             if($prestation->getLabel() == $type) 
             {
@@ -111,14 +112,14 @@ class HomeController extends AbstractController
     //        }
            
     //    }
-        $tab = [];
+        $journees = [];
         $dayStart = strtotime($_POST['startAt']);
         $manager = $this->getDoctrine()->getManager();
         // $commande = new Commande();
         // $commande->setDateStart($_POST['startAt'])
         //          ->setLocation();
 
-        for($i = 0; $i < $_POST['days']; $i++)
+        for($i = 0; $i < $_POST['days']; $i++) //génération des journées a confirmer
         {
             $journee = new Journee();
             $journee->setAdultes($_POST["commande_journee"]['nombres-adultes'])
@@ -131,7 +132,7 @@ class HomeController extends AbstractController
             }
             else
                 $journee->setMajoration(false);  
-            array_push($tab, $journee);
+            array_push($journees, $journee);
             // $manager->persist($journee);
         }
         // $manager->flush();
@@ -140,7 +141,7 @@ class HomeController extends AbstractController
         $prices['majoration'] = 0.15;
         
         return $this->render('home/confirmation.html.twig', [
-            'journees' => $tab,
+            'journees' => $journees,
             'startAt' => $dayStart,
             'type' => $type,
             'prestations' => $prestations,
@@ -152,9 +153,9 @@ class HomeController extends AbstractController
     /**
      * @Route("/location/{name}", name="location")
      */
-    public function locations(Request $request, string $name)
+    public function locations(Request $request, string $name) //Etape intermédiare (après le filtre des dates et avant la facturation)
     {
-        $days = $request->request->get('end-at'); 
+        // $days = $request->request->get('end-at'); 
         $days = '';
         $prestations = $this->prestationsrepo->findAll();
         $idType = '';
@@ -164,29 +165,29 @@ class HomeController extends AbstractController
                 $idType = $prestation->getId();
         }
      
-        if(isset($_POST['endAt']) )
-            $days = (strftime('%j', strtotime($_POST['endAt'])) -  (strftime('%j', strtotime($_POST['startAt']))));
+        // if(isset($_POST['endAt']) ) 
+        $days = (strftime('%j', strtotime($_POST['endAt'])) -  (strftime('%j', strtotime($_POST['startAt'])))); //calcul du nombre de jours
         
         $locations = $this->locationrepo->findByType($idType);
-        $reserved = false;
-        foreach ($locations as $value) 
-        {
-            $commandes = $value->getCommandes();
+        foreach ($locations as $value) //Pour toutes les locations :
+            {
+            $reserved = false; //flag de continuation
+            $commandes = $value->getCommandes(); // On récupère les commandes et pour toutes ces commandes :
             foreach ($commandes as $commande) 
             {
-                dump($commande->getDateStart());
-                $nombreJournees = count($commande->getJournees());
-                $dateDebutCommandeExistantes = strftime('%j', $commande->getDateStart()->getTimestamp() );
+                // dump($commande->getDateStart());
+                $nombreJournees = count($commande->getJournees());// On récupère leur durée 
+                $dateDebutCommandeExistantes = strftime('%j', $commande->getDateStart()->getTimestamp() ); //On recupère la date de début (getTimestamp() est une methode de Datetime)
                 
-                for ($i=0; $i < $nombreJournees; $i++) 
-                { 
-                    if ($dateDebutCommandeExistantes + $i == strftime('%j', strtotime($_POST['startAt'] )) + $i){
-                        $reserved = true;
+                for ($i=0; $i < $nombreJournees; $i++) //Pour chaque journée de la commande 
+                { //TODO : manque une boucle (pour chaque journée de la commande on teste tous les jours de la nouvelle commande)
+                    if ($dateDebutCommandeExistantes + $i == strftime('%j', strtotime($_POST['startAt'] )) + $i){ //On teste si notre jour est pris
+                        $reserved = true; //on le signale
                     }
                 }
-                if(!$reserved)
+                if(!$reserved) //Si c'est pas reservé
                 {
-                    // $error = 'excusez nous il y a pas de places';
+                    
                     $form = $this->createForm(CommandeJourneeType::class);
             
                     return $this->render('home/part/_location.html.twig', [
@@ -196,10 +197,10 @@ class HomeController extends AbstractController
                         'startAt' => $_POST['startAt'],
                         'type' => $_POST['type'],
                     ]);
-                }
-                return $this->render('home/error');
-            }
-        }
+                } 
+            }//Sinon location suivante
+        } //On a rien trouvé désolé
+        return $this->render('home/error');
 
     }
 }
