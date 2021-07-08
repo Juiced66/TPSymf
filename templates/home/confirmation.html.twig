@@ -4,7 +4,10 @@
 {% endblock %}
 {% block body %}
     <div class="container">
+    <div class="title"><h2>Confirmation de commande</h2></div>
+    {% set sommeTotal = 0%}
     {% for journee  in journees %}
+    {% set somme = 0 %}
     <table class="table">
         <thead>
             <tr>
@@ -13,42 +16,53 @@
         </thead>
         <tbody>
             <tr>
-                <th>label</th>
-                <th>quantite</th>
-                <th>prix</th>
+                <th>Label</th>
+                <th>Quantité</th>
+                <th>Prix</th>
             </tr>
+            {# {% for journee in journees %}
+                {% for prestation in prestations %}
+                    {% if prestation.label == type %}
+                        {{include('home/part/journee.html.twig', {label:prestation.label , quantite: journee. , prix: })}}
+                    {% endif %}
+                {% endfor %}              
+            {% endfor %} #}
             <tr>
                 <td>{{type}}</td>
                 <td>1</td>
-                <td></td>
+                {% set somme = somme + prices.type %}
+                    <td>
+                        {{prices.type}}
+                    </td>
                 {% if journee.majoration %}
                     <tr>
-                        <td colspan="2">journee majorette</td>
-                        <td>12</td>
+                        <td colspan="2">Majoration saison haute</td>
+                        {% set somme = somme + prices.type * prices.majoration %}
+                        <td>{{prices.type * prices.majoration}}</td>
                     </tr>
                 {% endif %}
             </tr>
             <tr>
-                <td>adultes</td>
+                <td>Adultes</td>
                 <td>{{journee.adultes}}</td>
-                <td></td>
+                {% set somme = somme + prices.taxAdulte * journee.adultes %}
+                <td>{{prices.taxAdulte * journee.adultes}}</td>
             </tr>
             <tr>
-                <td>enfants</td>
+                <td>Enfants</td>
                 <td>{{journee.enfants}}</td>
-                <td></td>
+                 {% set somme = somme + prices.taxEnfant * journee.enfants %}
+                <td>{{prices.taxEnfant * journee.enfants}}</td>
+            </tr>
+            <tr>
+                <td colspan = "2">TOTAL journee</td>
+                {% set sommeTotal = sommeTotal + somme %}
+                <td>{{somme}}</td>
             </tr>
         </tbody>
-
     </table>
-        {# <div class="card-body"></div>
-        <div>nombres d'adultes: {{journee.adultes}}</div>
-        <div>nombres d'enfants: {{journee.enfants}}</div> #}
-        {# {% if journee.majoration %}
-            <div>majoration haute saison</div>
-        {% endif %} #}
-        
     {% endfor %}
+    <div>Total: {{sommeTotal}}$</div>
     {# <div>{{startAt}}</div> #}
     </div>
 

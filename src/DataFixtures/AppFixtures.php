@@ -73,11 +73,11 @@ class AppFixtures extends Fixture
             $manager->persist($location);
         }
 
-        for($i = 0; $i < 10; $i++)
+        for($i = 0; $i < 50; $i++)
         {
             $commande = new Commande();
             $commande->setDateStart($faker->dateTimeBetween('-2 month', '+2 month' ))
-                ->setlocation($this->getReference('L'. rand(0, 49)));
+                ->setlocation($this->getReference('L'. rand(0,49)));
             $manager->persist($commande);
             $adultes = $faker->numberBetween(1,4);
             $enfant = $faker->numberBetween(1,4);
