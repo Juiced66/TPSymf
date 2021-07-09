@@ -8,10 +8,12 @@
     {% set sommeTotal = 0%}
     {% for journee  in journees %}
     {% set somme = 0 %}
-    <table class="table">
+
+    <table class="table hidden">
         <thead>
             <tr>
-                <th colspan="3">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</th>
+                <th colspan="2">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</th>
+                <th><button class="reduireTable">Réduire</button></th>
             </tr>
         </thead>
         <tbody>
@@ -61,6 +63,11 @@
             </tr>
         </tbody>
     </table>
+    <div class="row border border-dark p-2">
+        <div class="col-4 text-center">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</div>
+        <div class="col-4 text-center">total : {{somme}}</div>
+        <div class="col-4 text-center"><button class="btnDetail">Detail</button></div>
+    </div>
     {% endfor %}
     <div>Total: {{sommeTotal}}$</div>
     {# <div>{{startAt}}</div> #}

@@ -23,6 +23,7 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Validator\Constraints\Date;
+use Symfony\Component\Validator\Constraints\IsNull;
 
 class HomeController extends AbstractController
 {
@@ -34,6 +35,41 @@ class HomeController extends AbstractController
         $this->locationrepo = $locationRepository;
         $this->prestationsrepo = $prestationsRepository;
     }
+
+    public function creerPrestationListe(array $prestations,  $type = '')
+    {
+        $caravanes = [];
+        $m_h = [];
+        $emplacements = [];
+        $prestationsListes = [];
+        
+        foreach($prestations as $value) //parse des éléments de la table prestations
+        {
+            if(preg_match_all('/^Caravane/', $value->getLabel()))
+            array_push($caravanes,$value->getLabel());
+            if(preg_match_all('/^M-H/', $value->getLabel()))
+            array_push($m_h,$value->getLabel());
+            if(preg_match_all('/^Emplacement/', $value->getLabel()))
+            array_push($emplacements,$value->getLabel());
+        }
+        // array_push($prestationsListes, $caravanes, $m_h, $emplacements);
+        
+        if($type != '')
+        {
+            if(preg_match('/^Caravane/', $type) != false)
+                return $caravanes;
+            else if(preg_match('/^M-H/', $type) != false)
+                return $m_h;
+            
+            return $emplacements;               
+        }
+
+        $prestationsListes['caravanes'] = $caravanes;
+        $prestationsListes['m-h'] = $m_h;
+        $prestationsListes['emplacements'] = $emplacements;
+        
+        return $prestationsListes;
+    }
     /**
      * @Route("/home", name="home")
      */
@@ -41,23 +77,12 @@ class HomeController extends AbstractController
     {
         $prestations = $this->prestationsrepo->findAll();
      
-        $caravanes = [];
-        $m_h = [];
-        $emplacements = [];
-        foreach($prestations as $value) //parse des éléments de la table prestations
-        {
-            if(preg_match_all('/^Caravane/', $value->getLabel()))
-                array_push($caravanes,$value->getLabel());
-            if(preg_match_all('/^M-H/', $value->getLabel()))
-                array_push($m_h,$value->getLabel());
-            if(preg_match_all('/^Emplacement/', $value->getLabel()))
-                array_push($emplacements,$value->getLabel());
-        }
-       
+         $prestationsListes = $this->creerPrestationListe($prestations);
+        
         return $this->render('home/home.html.twig', [
-            'caravanes' =>  $caravanes,
-            'MHS' =>  $m_h,
-            'terrains' =>  $emplacements
+            'caravanes' =>  $prestationsListes['caravanes'],
+            'MHS' =>  $prestationsListes['m-h'],
+            'terrains' =>  $prestationsListes['emplacements']
         ]);
     }
 
@@ -101,17 +126,6 @@ class HomeController extends AbstractController
                 $prices['taxPiscineEnfant'] = $prestation->getPrice();
         }
 
-        // $locations = $this->locationrepo->findByType($idType);
-    //     foreach ($locations as $value) 
-    //     {
-//            $bob = $value->getCommandes();
-//              dump($bob);
-//              foreach ($bob as $value) 
-    //        {
-    //            dump($value->getJournees()[0]);
-    //        }
-           
-    //    }
         $journees = [];
         $dayStart = strtotime($_POST['startAt']);
         $manager = $this->getDoctrine()->getManager();
@@ -159,6 +173,7 @@ class HomeController extends AbstractController
         $days = '';
         $prestations = $this->prestationsrepo->findAll();
         $idType = '';
+        $form = $this->createForm(CommandeJourneeType::class);
         foreach($prestations as $prestation) 
         { 
             if($prestation->getLabel() == $_POST['type']) 
@@ -170,7 +185,7 @@ class HomeController extends AbstractController
         
         $locations = $this->locationrepo->findByType($idType);
         foreach ($locations as $value) //Pour toutes les locations :
-            {
+        {
             $reserved = false; //flag de continuation
             $commandes = $value->getCommandes(); // On récupère les commandes et pour toutes ces commandes :
             foreach ($commandes as $commande) 
@@ -178,29 +193,44 @@ class HomeController extends AbstractController
                 // dump($commande->getDateStart());
                 $nombreJournees = count($commande->getJournees());// On récupère leur durée 
                 $dateDebutCommandeExistantes = strftime('%j', $commande->getDateStart()->getTimestamp() ); //On recupère la date de début (getTimestamp() est une methode de Datetime)
-                
+             
                 for ($i=0; $i < $nombreJournees; $i++) //Pour chaque journée de la commande 
-                { //TODO : manque une boucle (pour chaque journée de la commande on teste tous les jours de la nouvelle commande)
-                    if ($dateDebutCommandeExistantes + $i == strftime('%j', strtotime($_POST['startAt'] )) + $i){ //On teste si notre jour est pris
+                { 
+                    if ($dateDebutCommandeExistantes + $i >= strftime('%j', strtotime($_POST['startAt'] ))&& 
+                        $dateDebutCommandeExistantes + $i <= strftime('%j', strtotime($_POST['endAt'])))
+                    { 
+                        //On teste si notre jour est pris
                         $reserved = true; //on le signale
                     }
                 }
+                
+                
                 if(!$reserved) //Si c'est pas reservé
                 {
-                    
-                    $form = $this->createForm(CommandeJourneeType::class);
-            
                     return $this->render('home/part/_location.html.twig', [
                         'form' => $form->createView(),
                         'name' => $name,
                         'days' => $days,
                         'startAt' => $_POST['startAt'],
                         'type' => $_POST['type'],
+                        'error' => null
                     ]);
                 } 
             }//Sinon location suivante
         } //On a rien trouvé désolé
-        return $this->render('home/error');
+        // $form = $this->createForm(CommandeJourneeType::class);
+
+        $prestationsListe = $this->creerPrestationListe($prestations, $_POST['type']);
+
+        return $this->render('home/part/_location.html.twig', [
+            'form' => $form->createView(),
+            'name' => $name,
+            'days' => $days,
+            'startAt' => $_POST['startAt'],
+            'type' => $_POST['type'],
+            'prestations' => $prestationsListe,
+            'error' => 'error'
+        ]);
 
     }
 }

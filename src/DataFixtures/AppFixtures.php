@@ -2,21 +2,29 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Client;
-use App\Entity\Commande;
-use App\Entity\Facturation;
-use App\Entity\Journee;
-use App\Entity\Location;
-use App\Entity\Prestations;
-use App\Entity\User;
-use DateTime;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
 use Faker;
+use DateTime;
+use App\Entity\User;
+use App\Entity\Client;
+use App\Entity\Journee;
+use App\Entity\Commande;
+use App\Entity\Location;
+use App\Entity\Facturation;
+use App\Entity\Prestations;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 
 class AppFixtures extends Fixture
 { 
+    private $encoder;
+
+    public function __construct(UserPasswordHasherInterface $encoder)
+    {
+        $this->encoder = $encoder;
+    }
+
     public $i = 0;
 
     public function load(ObjectManager $manager)
@@ -44,31 +52,61 @@ class AppFixtures extends Fixture
         prestations($this, 'taxe de séjour Adulte', 0.60, $manager );
         prestations($this, 'Piscine adulte', 1.5, $manager );
         prestations($this, 'Piscine enfant', 1, $manager );
-
+        
         $faker = Faker\Factory::create('fr_FR');
-
+        
         $user = new User;
-        $user->setNom('bob')
-            ->setPrenom('bobi')
-            ->setEmail('bobileboss@gmail.com')
-            ->setRole('1')
-            ->setPassword('passwordGros');
-            $this->setReference('U'. 0, $user);
+        $user->setNom('admin')
+        ->setPrenom('admin')
+        ->setEmail('admin@gmail.com')
+        ->setRole('0')
+        ->setPassword($this->encoder->hashPassword($user, 'admin'));
+        $this->setReference('admin', $user);
         $manager->persist($user);
-
-        $user = new User;
-            $user->setNom('admin')
-            ->setPrenom('admin')
-            ->setEmail('admin@gmail.com')
-            ->setRole('0')
-            ->setPassword('admin');
-
+        for($i = 0; $i < 10; $i++)
+        {
+            $user = new User;
+            $user->setNom($faker->lastName)
+                ->setPrenom($faker->firstName)
+                ->setEmail($faker->email)
+                ->setRole('1')
+                ->setPassword($this->encoder->hashPassword($user, 'bob'));
+                $this->setReference('U'. $i, $user);
+            $manager->persist($user);
+        }
         $manager->persist($user);
-        for($i = 0; $i < 50; $i++)
+        for($i = 0; $i < 20; $i++)
         {
             $location = new Location();
-            $location->setUser($this->getReference('U'. 0))
-                ->setPrestations($this->getReference('P' .rand(0, 8) ));
+            $location->setUser($this->getReference('admin'))
+                ->setPrestations($this->getReference('P' .rand(0, 3) ));
+            $this->setReference('L' . $i, $location);
+            $manager->persist($location);
+        }
+
+        for($i = 20; $i < 50; $i++)
+        {
+            $location = new Location();
+            $location->setUser($this->getReference('U'. rand(0, 9)))
+                ->setPrestations($this->getReference('P' .rand(0, 3) ));
+            $this->setReference('L' . $i, $location);
+            $manager->persist($location);
+        }
+        
+        for($i = 50; $i < 60; $i++)
+        {
+            $location = new Location();
+            $location->setUser($this->getReference('admin'))
+                ->setPrestations($this->getReference('P' .rand(4, 6) ));
+            $this->setReference('L' . $i, $location);
+            $manager->persist($location);
+        }
+
+        for($i = 60; $i < 90; $i++)
+        {
+            $location = new Location();
+            $location->setUser($this->getReference('admin'))
+                ->setPrestations($this->getReference('P' .rand(7, 9) ));
             $this->setReference('L' . $i, $location);
             $manager->persist($location);
         }
@@ -76,19 +114,24 @@ class AppFixtures extends Fixture
         for($i = 0; $i < 50; $i++)
         {
             $commande = new Commande();
-            $commande->setDateStart($faker->dateTimeBetween('-2 month', '+2 month' ))
-                ->setlocation($this->getReference('L'. rand(0,49)));
+            $commande->setDateStart($faker->dateTimeBetween(  strftime('%D' ,1620172800),  strftime('%D' ,1633824000)))
+                ->setlocation($this->getReference('L'. rand(0,89)));
             $manager->persist($commande);
             $adultes = $faker->numberBetween(1,4);
             $enfant = $faker->numberBetween(1,4);
-            $majoration = $faker->boolean();
+            if(strftime('%j',$commande->getDateStart()->getTimestamp())  <  strftime('%j' ,strtotime('2021-06-21'))
+            || strftime('%j',$commande->getDateStart()->getTimestamp())  <  strftime('%j' ,strtotime('2021-08-31') ))
+                $majoration = true;
+            else
+                $majoration = false;
+            
             for($c = 0; $c < $faker->numberBetween(1, 16); $c++)
             { 
                 $ed = new Journee();
                 $ed->setAdultes($adultes)
                     ->setEnfants($enfant)
-                    ->setPiscineEnfant($faker->numberBetween(0, 8))
-                    ->setPiscineAdulte($faker->numberBetween(0, 8))
+                    ->setPiscineEnfant($faker->numberBetween(0, $enfant))
+                    ->setPiscineAdulte($faker->numberBetween(0, $adultes))
                     ->setMajoration($majoration)
                     ->setCommande($commande);
                 $this->setReference('J'.$c, $ed);
@@ -103,7 +146,7 @@ class AppFixtures extends Fixture
 
             $facturation = new Facturation();
             $facturation->setCommande($commande)
-                ->setDateFacturation(new \DateTime($faker->date('Y-m-d', 'now')))
+                ->setDateFacturation( $faker->dateTimeBetween(  strftime('%D' ,1620172800),  strftime('%D' ,1620172800)))
                 ->setDateCheck($faker->boolean())
                 ->setClient($client);
             $manager->persist($facturation);

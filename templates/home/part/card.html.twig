@@ -2,7 +2,7 @@
     <h4>Location de {{type}} </h4>
     <div class="description">
         Le soleil tout confort dans un(e) de nos nombreux {{type}}.
-        <form method="POST" action="/location/{{type}}">
+        <form method="POST" class="{{prefix}}formHome" action="/location/{{type}}">
             <select name="type" id="type">
                 <option value="type">Selectionnez la taille</option>
                 {% for item in items %}
@@ -10,12 +10,12 @@
                 {% endfor %}
             </select>
             <div>
-                <label for="{{type}}startAt">Début du séjour</label>
-                <input type="date" name="startAt" id="{{type}}startAt">
+                <label for="{{prefix}}startAt">Début du séjour</label>
+                <input type="date" class="{{prefix}}startAt"name="startAt" id="{{prefix}}startAt">
             </div>
             <div>
-                <label for="{{type}}endAt">Fin du séjour</label>
-                <input type="date" name="endAt" id="{{type}}endAt">
+                <label for="{{prefix}}endAt">Fin du séjour</label>
+                <input type="date" class="{{prefix}}endAt" name="endAt" id="{{prefix}}endAt">
             </div>
             <input type="submit" value="Rechercher">
         </form>

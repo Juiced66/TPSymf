@@ -1,10 +1,40 @@
+{% extends "base.html.twig" %}
 
+{% block title %}
+    Reservations {{type}}
+{% endblock %}
+
+{% block body %}
+
+{% if error == 'error' %}
+    <div class="error">Il n'y a plus de {{type}} disponible desolé</div>
+   {{form_start(form)}}
+   <input type="text" value="{{days}}" name="days">
+   <input type="text" value="{{startAt}}" name="startAt">
+   <select name="type" id="" class="form-select is-invalid ">
+
+      <option value="">Choisissez un autre emplacement</option>
+      {% for prestation in prestations %}
+        {% if prestation == type %}
+          <option value="" disabled>{{prestation}}</option>
+          {% else %}
+          <option value="{{prestation}}">{{prestation}}</option>  
+        {% endif %}
+      {% endfor %}
+
+   </select>
+   {{form_rest(form)}}
+   {{form_end(form)}}
+ {% else %} 
 <div>
-  Reservez une {{name}}
+    Reservez une {{name}}
    {{form_start(form)}}
    <input type="text" value="{{days}}" name="days">
    <input type="text" value="{{startAt}}" name="startAt">
    <input type="text" value="{{type}}" name="type">
    {{form_rest(form)}}
    {{form_end(form)}}
-</div>
+</div>  
+{% endif %}
+
+{% endblock %}
