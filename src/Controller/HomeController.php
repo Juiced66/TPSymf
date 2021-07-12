@@ -1,29 +1,14 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Livre;
-use App\Entity\Article;
 use App\Entity\Journee;
-use App\Entity\Commande;
-use App\Form\CommandeType;
-use App\Form\DateStartType;
 use App\Form\CommandeJourneeType;
 use App\Repository\LocationRepository;
 use App\Repository\PrestationsRepository;
-use DateTime;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\Validator\Constraints\Date;
-use Symfony\Component\Validator\Constraints\IsNull;
 
 class HomeController extends AbstractController
 {
@@ -120,10 +105,10 @@ class HomeController extends AbstractController
                 $prices['taxAdulte'] = $prestation->getPrice();
 
             if($prestation->getLabel() == 'Piscine adulte') 
-                $prices['taxPiscineAdulte'] = $prestation->getPrice();
+                $prices['piscineAdulte'] = $prestation->getPrice();
 
             if($prestation->getLabel() == 'Piscine enfant') 
-                $prices['taxPiscineEnfant'] = $prestation->getPrice();
+                $prices['piscineEnfant'] = $prestation->getPrice();
         }
 
         $journees = [];

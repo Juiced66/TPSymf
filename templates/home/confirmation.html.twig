@@ -4,73 +4,73 @@
 {% endblock %}
 {% block body %}
     <div class="container">
-    <div class="title"><h2>Confirmation de commande</h2></div>
-    {% set sommeTotal = 0%}
-    {% for journee  in journees %}
-    {% set somme = 0 %}
+        <div class="title"><h2>Confirmation de commande</h2></div>
+        {% set sommeTotal = 0%}
+        {% for journee  in journees %}
+        {% set somme = 0 %}
 
-    <table class="table hidden">
-        <thead>
-            <tr>
-                <th colspan="2">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</th>
-                <th><button class="reduireTable">Réduire</button></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <th>Label</th>
-                <th>Quantité</th>
-                <th>Prix</th>
-            </tr>
-            {# {% for journee in journees %}
-                {% for prestation in prestations %}
-                    {% if prestation.label == type %}
-                        {{include('home/part/journee.html.twig', {label:prestation.label , quantite: journee. , prix: })}}
+        <table class="table hidden">
+            <thead>
+                <tr>
+                    <th colspan="2">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</th>
+                    <th><button class="reduireTable">Réduire</button></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Label</th>
+                    <th>Quantité</th>
+                    <th>Prix</th>
+                </tr>
+                <tr>
+                    <td>{{type}}</td>
+                    <td>1</td>
+                    {% set somme = somme + prices.type %}
+                        <td>
+                            {{prices.type}}
+                        </td>
+                    {% if journee.majoration %}
+                        <tr>
+                            <td colspan="2">Majoration saison haute</td>
+                            {% set somme = somme + prices.type * prices.majoration %}
+                            <td>{{prices.type * prices.majoration}}</td>
+                        </tr>
                     {% endif %}
-                {% endfor %}              
-            {% endfor %} #}
-            <tr>
-                <td>{{type}}</td>
-                <td>1</td>
-                {% set somme = somme + prices.type %}
-                    <td>
-                        {{prices.type}}
-                    </td>
-                {% if journee.majoration %}
-                    <tr>
-                        <td colspan="2">Majoration saison haute</td>
-                        {% set somme = somme + prices.type * prices.majoration %}
-                        <td>{{prices.type * prices.majoration}}</td>
-                    </tr>
-                {% endif %}
-            </tr>
-            <tr>
-                <td>Adultes</td>
-                <td>{{journee.adultes}}</td>
-                {% set somme = somme + prices.taxAdulte * journee.adultes %}
-                <td>{{prices.taxAdulte * journee.adultes}}</td>
-            </tr>
-            <tr>
-                <td>Enfants</td>
-                <td>{{journee.enfants}}</td>
-                 {% set somme = somme + prices.taxEnfant * journee.enfants %}
-                <td>{{prices.taxEnfant * journee.enfants}}</td>
-            </tr>
-            <tr>
-                <td colspan = "2">TOTAL journee</td>
-                {% set sommeTotal = sommeTotal + somme %}
-                <td>{{somme}}</td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="row border border-dark p-2">
-        <div class="col-4 text-center">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</div>
-        <div class="col-4 text-center">total : {{somme}}</div>
-        <div class="col-4 text-center"><button class="btnDetail">Detail</button></div>
-    </div>
-    {% endfor %}
-    <div>Total: {{sommeTotal}}$</div>
-    {# <div>{{startAt}}</div> #}
+                </tr>
+                <tr>
+                    <td>Adultes</td>
+                    <td>{{journee.adultes}}</td>
+                    {% set somme = somme + prices.taxAdulte * journee.adultes %}
+                    <td>{{prices.taxAdulte * journee.adultes}}</td>
+                </tr>
+                <tr>
+                    <td>Enfants</td>
+                    <td>{{journee.enfants}}</td>
+                    {% set somme = somme + prices.taxEnfant * journee.enfants %}
+                    <td>{{prices.taxEnfant * journee.enfants}}</td>
+                </tr>
+                <tr class="sommeJournee" data-previous="{{somme}}">
+                    <td colspan = "2">TOTAL journee</td>
+                    {% set sommeTotal = sommeTotal + somme %}
+                    <td>{{somme}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="row journee border border-dark p-2 mb-3">
+            <div class="col-3 text-center">{{ startAt|date_modify(loop.index~"day")|date("d/m/Y") }}</div>
+            <div class="col-3 text-center">total : {{somme}}</div>
+            <div class="col-3 text-center"><button class="btnDetail">Detail ↕️</button></div>
+            <div class="col-3 text-center"><button class="btnPiscine">Piscine  </button></div>
+        </div>
+        <div class="row pannel hidden mb-3">
+            <label for="piscineEnfant {{~loop.index}}" >Piscine enfant</label>
+            <input type="number" value="0" name="piscineEnfant" data-piscine-enfant='{{prices.piscineEnfant}}' class="piscineEnfant" id="piscineEnfant {{~loop.index}}">
+            <label for="piscineAdulte{{~loop.index}}">Piscine adulte</label>
+            <input type="number" value="0" name="piscineAdulte" data-piscine-adulte='{{prices.piscineAdulte}}' class="piscineAdulte" id="piscineAdulte {{~loop.index}}">
+        </div>
+        {% endfor %}
+        <div class="sommeTotal">Total: {{sommeTotal}}$</div>
     </div>
 
 {% endblock %}
+{# <img src="down-arrow.png" class="fleche" alt=""> #}
